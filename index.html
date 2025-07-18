@@ -1,0 +1,416 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fusionário - Obtenha Seu Código</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: #000;
+      color: #00ff99;
+      overflow-x: hidden;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+    }
+
+    #threejs-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      opacity: 0.5;
+    }
+
+    .menu {
+      background: #000;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: none;
+      border-bottom: 1px solid #00ff99;
+    }
+
+    .menu h2 {
+      margin: 0;
+      font-size: 20px;
+    }
+
+    .menu button {
+      background: #111;
+      color: #00ff99;
+      border: 1px solid #00ff99;
+      padding: 5px 15px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background 0.3s;
+    }
+
+    .menu button:hover {
+      background: #00ff99;
+      color: #000;
+    }
+
+    .center-button {
+      text-align: center;
+      padding-top: 200px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .center-button button {
+      padding: 25px 50px;
+      font-size: 22px;
+      background-color: #00ff99;
+      color: #000;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.2s;
+    }
+
+    .center-button button:hover {
+      transform: scale(1.05);
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 20px auto;
+      background: rgba(0, 0, 0, 0.85);
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 15px #00ff99;
+      display: none;
+      position: relative;
+      z-index: 2;
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #00ff99;
+      border-radius: 4px;
+      font-size: 14px;
+      background: #111;
+      color: #00ff99;
+      font-family: monospace;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      background-color: #00c27a;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #009a5a;
+    }
+
+    .download-btn {
+      background-color: #007bff;
+    }
+
+    .download-btn:hover {
+      background-color: #005fd4;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .error {
+      color: #ff4d4d;
+      font-size: 12px;
+      margin-top: 5px;
+      text-align: center;
+    }
+
+    .success {
+      color: #00ff99;
+      font-size: 12px;
+      margin-top: 5px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <canvas id="threejs-canvas"></canvas>
+
+  <!-- MENU -->
+  <div class="menu" id="menuSuperior">
+    <h2>Fusionário - Editor de Código</h2>
+    <button onclick="voltarInicio()">Voltar</button>
+  </div>
+
+  <!-- TELA INICIAL -->
+  <div class="center-button" id="telaInicial">
+    <button onclick="abrirEditor()">Obter Código Grátis</button>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="container" id="editorArea">
+    <h2>Cole seu código abaixo</h2>
+    <textarea id="codigo" rows="10" placeholder="Cole aqui seu código HTML, CSS ou JS..."></textarea>
+    <button id="botaoCodigo" onclick="salvarOuExcluirCodigo()">Salvar código</button>
+
+    <div class="senha-area hidden" id="senhaArea">
+      <input type="password" id="senha" placeholder="Digite a senha para excluir" />
+      <div id="senhaError" class="error"></div>
+      <button onclick="confirmarExclusao()">Confirmar exclusão</button>
+    </div>
+
+    <button class="download-btn" onclick="abrirCadastro()">Fazer download</button>
+  </div>
+
+  <!-- FORMULÁRIO DE CADASTRO -->
+  <div class="container hidden" id="cadastroForm">
+    <h2>Cadastro Obrigatório</h2>
+    <input type="text" id="nome" placeholder="Nome completo" oninput="validarCampo('nome')" />
+    <div id="nomeError" class="error"></div>
+    <input type="email" id="email" placeholder="Seu Gmail" oninput="validarCampo('email')" />
+    <div id="emailError" class="error"></div>
+    <input type="tel" id="telefone" placeholder="(DDD) 9XXXX-XXXX" oninput="validarCampo('telefone')" />
+    <div id="telefoneError" class="error"></div>
+    <div id="cadastroSuccess" class="success"></div>
+    <button onclick="salvarCadastro()">Salvar Cadastro e Baixar</button>
+  </div>
+
+  <!-- LIBS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+  <!-- SCRIPT -->
+  <script>
+    // Three.js 3D Cube Animation
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('threejs-canvas'), alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    const geometry = new THREE.BoxGeometry(2, 2, 2);
+    const material = new THREE.MeshBasicMaterial({ color: 0x00ff99, wireframe: true });
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
+
+    camera.position.z = 5;
+
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Editor Functions
+    function abrirEditor() {
+      document.getElementById("telaInicial").style.display = "none";
+      document.getElementById("editorArea").style.display = "block";
+      document.getElementById("menuSuperior").style.display = "flex";
+      document.getElementById("cadastroForm").classList.add("hidden");
+    }
+
+    function voltarInicio() {
+      document.getElementById("telaInicial").style.display = "block";
+      document.getElementById("editorArea").style.display = "none";
+      document.getElementById("cadastroForm").classList.add("hidden");
+      document.getElementById("menuSuperior").style.display = "none";
+      document.getElementById("codigo").value = localStorage.getItem("codigoSalvo") || "";
+      document.getElementById("botaoCodigo").textContent = localStorage.getItem("codigoSalvo") ? "Excluir código" : "Salvar código";
+      clearFormErrors();
+    }
+
+    function validarEmail(email) {
+      return /^[a-zA-Z0-9._%+-]+@gmail\.com$/.test(email);
+    }
+
+    function validarTelefone(telefone) {
+      return /^\(?[1-9]{2}\)?\s?9[0-9]{4}-?[0-9]{4}$/.test(telefone);
+    }
+
+    function validarNome(nome) {
+      return nome.length >= 3 && /^[a-zA-Z\s]+$/.test(nome);
+    }
+
+    function validarCampo(campo) {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
+      const nomeError = document.getElementById('nomeError');
+      const emailError = document.getElementById('emailError');
+      const telefoneError = document.getElementById('telefoneError');
+
+      if (campo === 'nome') {
+        nomeError.textContent = validarNome(nome) ? "" : "Nome deve ter pelo menos 3 caracteres e conter apenas letras.";
+      } else if (campo === 'email') {
+        emailError.textContent = validarEmail(email) ? "" : "Insira um e-mail Gmail válido.";
+      } else if (campo === 'telefone') {
+        telefoneError.textContent = validarTelefone(telefone) ? "" : "Telefone deve seguir o formato (DDD) 9XXXX-XXXX.";
+      }
+    }
+
+    function clearFormErrors() {
+      document.getElementById('nomeError').textContent = "";
+      document.getElementById('emailError').textContent = "";
+      document.getElementById('telefoneError').textContent = "";
+      document.getElementById('cadastroSuccess').textContent = "";
+      document.getElementById('senhaError').textContent = "";
+    }
+
+    function salvarOuExcluirCodigo() {
+      const botao = document.getElementById('botaoCodigo');
+      const codigo = document.getElementById('codigo').value;
+
+      if (botao.textContent === "Salvar código") {
+        if (!codigo.trim()) {
+          alert("Cole algum código antes de salvar.");
+          return;
+        }
+        localStorage.setItem("codigoSalvo", codigo);
+        botao.textContent = "Excluir código";
+        alert("Código salvo com sucesso!");
+      } else {
+        document.getElementById('senhaArea').classList.remove("hidden");
+      }
+    }
+
+    function confirmarExclusao() {
+      const senha = document.getElementById('senha').value;
+      const senhaError = document.getElementById('senhaError');
+      if (senha === "582010") {
+        localStorage.removeItem("codigoSalvo");
+        document.getElementById('codigo').value = "";
+        document.getElementById('botaoCodigo').textContent = "Salvar código";
+        document.getElementById('senhaArea').classList.add("hidden");
+        senhaError.textContent = "";
+        alert("Código excluído com sucesso!");
+      } else {
+        senhaError.textContent = "Senha incorreta!";
+      }
+    }
+
+    function abrirCadastro() {
+      const codigo = localStorage.getItem("codigoSalvo");
+      if (!codigo) {
+        alert("Nenhum código salvo para baixar! Salve um código primeiro.");
+        return;
+      }
+      const cadastroForm = document.getElementById('cadastroForm');
+      cadastroForm.classList.remove('hidden');
+      cadastroForm.style.display = 'block';
+      document.getElementById('editorArea').style.display = 'block';
+      clearFormErrors();
+      document.getElementById('nome').value = "";
+      document.getElementById('email').value = "";
+      document.getElementById('telefone').value = "";
+      window.scrollTo({ top: cadastroForm.offsetTop, behavior: 'smooth' });
+    }
+
+    function salvarCadastro() {
+      const nome = document.getElementById('nome').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const telefone = document.getElementById('telefone').value.trim();
+      const nomeError = document.getElementById('nomeError');
+      const emailError = document.getElementById('emailError');
+      const telefoneError = document.getElementById('telefoneError');
+      const cadastroSuccess = document.getElementById('cadastroSuccess');
+
+      nomeError.textContent = "";
+      emailError.textContent = "";
+      telefoneError.textContent = "";
+      cadastroSuccess.textContent = "";
+
+      let valid = true;
+
+      if (!validarNome(nome)) {
+        nomeError.textContent = "Nome deve ter pelo menos 3 caracteres e conter apenas letras.";
+        valid = false;
+      }
+      if (!validarEmail(email)) {
+        emailError.textContent = "Insira um e-mail Gmail válido.";
+        valid = false;
+      }
+      if (!validarTelefone(telefone)) {
+        telefoneError.textContent = "Telefone deve seguir o formato (DDD) 9XXXX-XXXX.";
+        valid = false;
+      }
+
+      if (!valid) return;
+
+      const dados = { nome, email, telefone };
+      localStorage.setItem("cadastroUser", JSON.stringify(dados));
+      cadastroSuccess.textContent = "Cadastro salvo com sucesso! Iniciando download...";
+      
+      setTimeout(() => {
+        gerarDownload();
+      }, 1000);
+    }
+
+    function gerarDownload() {
+      const codigo = localStorage.getItem("codigoSalvo") || "";
+      if (!codigo.trim()) {
+        alert("Nenhum código salvo para baixar!");
+        document.getElementById('cadastroForm').classList.add("hidden");
+        document.getElementById('cadastroForm').style.display = 'none';
+        return;
+      }
+
+      const zip = new JSZip();
+      zip.file("index.html", codigo);
+
+      zip.generateAsync({ type: "blob" }).then(blob => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "projeto.zip";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        document.getElementById('cadastroForm').classList.add("hidden");
+        document.getElementById('cadastroForm').style.display = 'none';
+        document.getElementById('cadastroSuccess').textContent = "";
+      });
+    }
+
+    // Carrega código salvo
+    window.onload = function () {
+      const codigo = localStorage.getItem("codigoSalvo");
+      if (codigo) {
+        document.getElementById("codigo").value = codigo;
+        document.getElementById("botaoCodigo").textContent = "Excluir código";
+      }
+    };
+  </script>
+</body>
+</html>
